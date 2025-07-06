@@ -1,0 +1,58 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: tracker
+          POSTGRES_PASSWORD: trackerpass
+          POSTGRES_DB: trackerdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://tracker:trackerpass@localhost:5432/trackerdb
+      SECRET_KEY: supersecretkey
+      GOOGLE_CLIENT_ID: dummy
+      GOOGLE_CLIENT_SECRET: dummy
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install backend dependencies
+        run: |
+          cd "issue tracker/backend"
+          pip install -r requirements.txt
+      - name: Run backend tests
+        run: |
+          cd "issue tracker/backend"
+          pytest --cov=app --cov-report=term --cov-fail-under=80
+      - name: Build backend Docker image
+        run: |
+          cd "issue tracker/backend"
+          docker build -t tracker-backend .
+      - name: Build frontend Docker image
+        run: |
+          cd "issue tracker/frontend"
+          npm ci
+          npm run build
+          docker build -t tracker-frontend .
+      - name: Build worker Docker image
+        run: |
+          cd "issue tracker/worker"
+          pip install -r requirements.txt
+          docker build -t tracker-worker .
+      - name: Alembic migrations
+        run: |
+          cd "issue tracker/backend"
+          alembic upgrade head 

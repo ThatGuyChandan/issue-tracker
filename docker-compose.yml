@@ -1,0 +1,54 @@
+version: '3.3'
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '5433:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/issues_tracker
+
+  frontend:
+    build: ./frontend
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/app
+
+  worker:
+    build: ./worker
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - backend
+    volumes:
+      - ./worker:/app
+      - ./backend:/app/backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/issues_tracker
+    working_dir: /app
+
+volumes:
+  pgdata: 

@@ -1,0 +1,9 @@
+fastapi
+sqlalchemy
+alembic
+psycopg2-binary
+python-dotenv
+celery
+redis
+loguru 
+apscheduler 
