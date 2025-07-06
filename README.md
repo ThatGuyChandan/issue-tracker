@@ -2,6 +2,16 @@
 
 A mini SaaS portal for issue tracking, feedback, and analytics.
 
+## 📸 Screenshots
+
+<div align="center">
+  <img src="images/home.png" alt="Home Page" width="300" />
+  <img src="images/login.png" alt="Login Page" width="300" />
+  <img src="images/signup.png" alt="Signup Page" width="300" />
+  <img src="images/issue.png" alt="Issue Management" width="300" />
+  <img src="images/Dashboard.png" alt="Dashboard" width="300" />
+</div>
+
 ## Tech Stack
 - **Frontend:** SvelteKit + Tailwind CSS
 - **Backend:** FastAPI (Python), SQLAlchemy, Alembic
@@ -20,6 +30,46 @@ A mini SaaS portal for issue tracking, feedback, and analytics.
 - Dashboard (open issues by severity)
 - Background stats aggregation
 - API docs (/api/docs)
+
+---
+
+## 🏗️ Architecture Decision Records (ADR)
+
+### ADR-001: Role-Based Access Control (RBAC) Implementation
+
+**Date:** 2025-01-06  
+**Status:** Accepted  
+**Context:** The application needed a flexible permission system to manage different user roles and their access to various features.
+
+**Decision:** Implement a three-tier Role-Based Access Control (RBAC) system with the following roles:
+- **ADMIN:** Full system access, user management, all CRUD operations
+- **MAINTAINER:** Issue management, status updates, limited user operations
+- **REPORTER:** Create and view issues, limited to own submissions
+
+**Consequences:**
+
+**Positive:**
+- Clear separation of responsibilities
+- Scalable permission model
+- Easy to extend with new roles
+- Frontend and backend enforcement
+- Database-level role storage with enum validation
+
+**Negative:**
+- Requires role management overhead
+- More complex authentication flow
+- Need to maintain role consistency across frontend/backend
+
+**Implementation Details:**
+- Database: `UserRole` enum in SQLAlchemy models
+- Backend: Role checking in FastAPI dependencies
+- Frontend: Role-based UI rendering and navigation
+- JWT tokens include role information for stateless validation
+
+**Alternatives Considered:**
+- Attribute-Based Access Control (ABAC): Too complex for current needs
+- Simple admin/user binary roles: Too limiting for future growth
+- Permission-based system: More granular but harder to manage
 
 ---
 
@@ -42,7 +92,7 @@ cp env.example .env
 cd backend
 pip install -r requirements.txt
 # (Optional) Edit .env for DB/SECRET_KEY
-alembic upgrade head
+python init_db.py  # Initialize database tables
 uvicorn main:app --reload
 ```
 - API: http://localhost:8000
