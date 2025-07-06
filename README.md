@@ -141,4 +141,3 @@ python worker.py
 
 ---
 
-## License
