@@ -142,4 +142,3 @@ python worker.py
 ---
 
 ## License
-MIT 
